@@ -30,7 +30,8 @@ public class SecurityConfig {
                 // Public — no auth required
                 .requestMatchers("/memory/health").permitAll()
                 .requestMatchers("/v1/health").permitAll()
-                .requestMatchers("/actuator/**").permitAll()
+                .requestMatchers("/actuator/health").permitAll()
+                .requestMatchers("/actuator/**").denyAll()
                 .requestMatchers("/", "/*.html", "/*.css", "/*.js", "/*.ico").permitAll()
 
                 // Everything else requires API key
