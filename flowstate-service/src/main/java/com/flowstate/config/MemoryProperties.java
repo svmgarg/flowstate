@@ -13,12 +13,6 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "memory")
 public class MemoryProperties {
 
-    /** Storage backend: "memory" (dev) or "redis" (prod) */
-    private String storage = "memory";
-
     /** Default TTL in seconds. 0 = no expiry. */
     private long defaultTtlSeconds = 86400;
-
-    /** Max keys allowed in memory store (per workspace). Prevents OOM. */
-    private long maxStoreSize = 100000;
 }
