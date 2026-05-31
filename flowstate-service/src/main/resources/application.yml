@@ -1,0 +1,55 @@
+server:
+  port: ${SERVER_PORT:8080}
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 20
+    accept-count: 100
+    max-connections: 10000
+
+spring:
+  application:
+    name: flowstate-service
+
+  # Redis Cloud configuration (only used when memory.storage=redis)
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      username: ${REDIS_USERNAME:default}
+      ssl:
+        enabled: ${REDIS_SSL:true}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 5
+          min-idle: 2
+          max-wait: 1000ms
+
+# Workflow Memory service configuration
+memory:
+  # Default TTL in seconds (24 hours). 0 = no expiry.
+  default-ttl-seconds: ${MEMORY_DEFAULT_TTL:86400}
+
+
+# Actuator endpoints for monitoring
+management:
+  server:
+    port: ${MANAGEMENT_PORT:8081}
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# Logging
+logging:
+  level:
+    com.flowstate: INFO
+    org.springframework.web: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

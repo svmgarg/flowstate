@@ -1,0 +1,284 @@
+# Idempotency Service - Automated Deployment Script
+# Deploys the service to remote server and handles build, test, and deployment
+
+param(
+    [string]$ServerIP = "144.24.119.46",
+    [string]$ServerPort = "8443",
+    [string]$SSHUser = "opc",
+    [string]$RemoteAppPath = "/home/opc",
+    [bool]$RunTests = $true,
+    [bool]$BuildJar = $true,
+    [bool]$RestartService = $true
+)
+
+# Configuration
+$ProjectPath = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ServiceDir = Join-Path $ProjectPath "idempotent-service"
+$RemoteServer = "$SSHUser@$ServerIP"
+$JarFile = "target/idempotency-service-1.0.0.jar"
+
+# Colors for output
+$SuccessColor = "Green"
+$ErrorColor = "Red"
+$InfoColor = "Cyan"
+$WarningColor = "Yellow"
+
+function Write-Log {
+    param([string]$Message, [string]$Color = "White")
+    Write-Host "[$((Get-Date).ToString('HH:mm:ss'))] $Message" -ForegroundColor $Color
+}
+
+function Check-Prerequisites {
+    Write-Log "Checking prerequisites..." -Color $InfoColor
+    
+    # Set Java 17 path
+    $env:JAVA_HOME = "C:\Program Files\Microsoft\jdk-17.0.18.8-hotspot"
+    Write-Log "✓ Set JAVA_HOME to: $env:JAVA_HOME" -Color $SuccessColor
+    
+    # Check Maven
+    try {
+        $mavenVersion = mvn -v 2>&1 | Select-Object -First 1
+        Write-Log "✓ Maven: $mavenVersion" -Color $SuccessColor
+    }
+    catch {
+        Write-Log "✗ Maven not found. Please install Maven." -Color $ErrorColor
+        exit 1
+    }
+    
+    # Check connectivity to server
+    Write-Log "Testing SSH connection to $RemoteServer..." -Color $InfoColor
+    $sshTest = ssh -o ConnectTimeout=5 $RemoteServer "echo 'Connection OK'" 2>&1
+    if ($LASTEXITCODE -eq 0) {
+        Write-Log "✓ SSH connection successful" -Color $SuccessColor
+    }
+    else {
+        Write-Log "✗ Cannot connect to server: $RemoteServer" -Color $ErrorColor
+        exit 1
+    }
+}
+
+function Build-Project {
+    Write-Log "`n========================================" -Color $InfoColor
+    Write-Log "Building Project..." -Color $InfoColor
+    Write-Log "========================================" -Color $InfoColor
+    
+    Set-Location $ServiceDir
+    
+    # Clean previous build
+    Write-Log "Running: mvn clean package..." -Color $InfoColor
+    $buildOutput = & mvn clean package -DskipTests:$(!$RunTests)
+    
+    if ($LASTEXITCODE -ne 0) {
+        Write-Log "✗ Build failed" -Color $ErrorColor
+        exit 1
+    }
+    
+    # Verify JAR file exists
+    if (-not (Test-Path $JarFile)) {
+        Write-Log "✗ JAR file not created at: $JarFile" -Color $ErrorColor
+        exit 1
+    }
+    
+    $jarSize = (Get-Item $JarFile).Length / 1MB
+    Write-Log "✓ Build successful - JAR size: $([Math]::Round($jarSize, 2)) MB" -Color $SuccessColor
+}
+
+function Run-Tests {
+    if (-not $RunTests) {
+        Write-Log "Skipping unit tests (RunTests=false)" -Color $WarningColor
+        return
+    }
+    
+    Write-Log "`n========================================" -Color $InfoColor
+    Write-Log "Running Unit Tests..." -Color $InfoColor
+    Write-Log "========================================" -Color $InfoColor
+    
+    Set-Location $ServiceDir
+    $testOutput = & mvn test
+    
+    if ($LASTEXITCODE -ne 0) {
+        Write-Log "✗ Tests failed" -Color $ErrorColor
+        exit 1
+    }
+    
+    Write-Log "✓ All tests passed" -Color $SuccessColor
+}
+
+function Deploy-ToServer {
+    Write-Log "`n========================================" -Color $InfoColor
+    Write-Log "Deploying to Server..." -Color $InfoColor
+    Write-Log "========================================" -Color $InfoColor
+    
+    # Remove old JAR file from server
+    Write-Log "Removing old JAR file..." -Color $InfoColor
+    ssh $RemoteServer "rm -f $RemoteAppPath/idempotency-service-1.0.0.jar"
+    
+    # Copy JAR file to server
+    Write-Log "Uploading new JAR file to $RemoteAppPath..." -Color $InfoColor
+    $jarPath = Join-Path $ServiceDir $JarFile
+    scp $jarPath "${RemoteServer}:${RemoteAppPath}/"
+    
+    if ($LASTEXITCODE -ne 0) {
+        Write-Log "✗ Failed to upload JAR file" -Color $ErrorColor
+        exit 1
+    }
+    
+    Write-Log "✓ JAR file uploaded successfully" -Color $SuccessColor
+    
+    # Copy keystore file to server for HTTPS
+    Write-Log "Uploading keystore for HTTPS..." -Color $InfoColor
+    $keystorePath = Join-Path $ServiceDir "keystore.p12"
+    scp $keystorePath "${RemoteServer}:${RemoteAppPath}/"
+    
+    if ($LASTEXITCODE -ne 0) {
+        Write-Log "✗ Failed to upload keystore file" -Color $ErrorColor
+        exit 1
+    }
+    
+    Write-Log "✓ Keystore file uploaded successfully" -Color $SuccessColor
+}
+
+function Restart-Service {
+    if (-not $RestartService) {
+        Write-Log "Skipping service restart (RestartService=false)" -Color $WarningColor
+        return
+    }
+    
+    Write-Log "`n========================================" -Color $InfoColor
+    Write-Log "Restarting Service..." -Color $InfoColor
+    Write-Log "========================================" -Color $InfoColor
+    
+    # Kill any existing Java process
+    Write-Log "Stopping existing service..." -Color $InfoColor
+    ssh $RemoteServer "pkill -9 -f 'idempotency-service' 2>/dev/null || true"
+    Start-Sleep -Seconds 2
+    
+    # Verify process is killed
+    Write-Log "Verifying process is terminated..." -Color $InfoColor
+    ssh $RemoteServer "pkill -9 -f java || true"
+    Start-Sleep -Seconds 1
+    
+    # Start new service with HTTPS on port 443
+    Write-Log "Starting service on port $ServerPort (HTTPS)..." -Color $InfoColor
+    ssh $RemoteServer @"
+        cd $RemoteAppPath
+        nohup java -jar idempotency-service-1.0.0.jar --server.port=$ServerPort --server.ssl.key-store=file:./keystore.p12 --server.ssl.key-store-password=idempotent123 > service.log 2>&1 &
+        sleep 3
+        ps -ef | grep java | grep idempotency-service
+"@
+    
+    if ($LASTEXITCODE -ne 0) {
+        Write-Log "✗ Failed to start service" -Color $ErrorColor
+        exit 1
+    }
+    
+    Write-Log "✓ Service started successfully" -Color $SuccessColor
+}
+
+function Verify-Deployment {
+    Write-Log "`n========================================" -Color $InfoColor
+    Write-Log "Verifying Deployment..." -Color $InfoColor
+    Write-Log "========================================" -Color $InfoColor
+    
+    $maxAttempts = 10
+    $attempt = 0
+    $healthUrl = "https://${ServerIP}:${ServerPort}/idempotency/ping"
+    
+    while ($attempt -lt $maxAttempts) {
+        $attempt++
+        Write-Log "Health check attempt $attempt/$maxAttempts..." -Color $InfoColor
+        
+        try {
+            # Test via SSH curl command with -k flag to ignore self-signed cert
+            $curlResult = ssh $RemoteServer "curl -s -k -o /dev/null -w '%{http_code}' https://localhost:${ServerPort}/idempotency/ping" 2>&1
+            if ($curlResult -eq "200") {
+                Write-Log "✓ Service is healthy and responding" -Color $SuccessColor
+                Write-Log "  Endpoint: $healthUrl" -Color $SuccessColor
+                return $true
+            }
+        }
+        catch {
+            Start-Sleep -Seconds 2
+        }
+        Start-Sleep -Seconds 2
+    }
+    
+    Write-Log "✗ Service health check failed after $maxAttempts attempts" -Color $ErrorColor
+    Write-Log "  Please check logs on server: ssh $RemoteServer" -Color $WarningColor
+    Write-Log "  Command: tail -f $RemoteAppPath/service.log" -Color $WarningColor
+    return $false
+}
+
+function Show-Summary {
+    Write-Log "`n========================================" -Color $InfoColor
+    Write-Log "Deployment Summary" -Color $InfoColor
+    Write-Log "========================================" -Color $InfoColor
+    
+    Write-Host @"
+✓ Deployment Completed Successfully
+
+Server Details:
+  - IP Address: $ServerIP
+  - Port: $ServerPort
+  - User: $SSHUser
+  - App Path: $RemoteAppPath
+
+Service URLs:
+  - Health Check: https://${ServerIP}:${ServerPort}/idempotency/health
+  - Ping: https://${ServerIP}:${ServerPort}/idempotency/ping
+  - Documentation: https://${ServerIP}:${ServerPort}/
+
+Remote Access:
+  - SSH: ssh $RemoteServer
+  - View Logs: tail -f $RemoteAppPath/service.log
+  - Stop Service: pkill -f 'idempotency-service'
+  - Start Service: cd $RemoteAppPath && nohup java -jar idempotency-service-1.0.0.jar --server.port=$ServerPort > service.log 2>&1 &
+
+"@ -ForegroundColor $SuccessColor
+}
+
+# Main Deployment Flow
+function Start-Deployment {
+    Write-Log "========================================" -Color $InfoColor
+    Write-Log "IDEMPOTENCY SERVICE - DEPLOYMENT SCRIPT" -Color $InfoColor
+    Write-Log "========================================" -Color $InfoColor
+    Write-Log "Target Server: $RemoteServer" -Color $InfoColor
+    Write-Log "Port: $ServerPort" -Color $InfoColor
+    Write-Log "Build JAR: $BuildJar" -Color $InfoColor
+    Write-Log "Run Tests: $RunTests" -Color $InfoColor
+    Write-Log "Restart Service: $RestartService" -Color $InfoColor
+    
+    $startTime = Get-Date
+    
+    try {
+        Check-Prerequisites
+        
+        if ($BuildJar) {
+            Build-Project
+            Run-Tests
+        }
+        
+        Deploy-ToServer
+        Restart-Service
+        
+        $healthOk = Verify-Deployment
+        
+        $duration = (Get-Date) - $startTime
+        Write-Log "`nDeployment completed in $($duration.TotalSeconds) seconds" -Color $SuccessColor
+        
+        if ($healthOk) {
+            Show-Summary
+            exit 0
+        }
+        else {
+            exit 1
+        }
+    }
+    catch {
+        Write-Log "✗ Deployment failed: $_" -Color $ErrorColor
+        exit 1
+    }
+}
+
+# Run deployment
+Start-Deployment

@@ -1,0 +1,6 @@
+target/
+app.log
+*.jar
+*.jar.original
+*.class
+*.log

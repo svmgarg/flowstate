@@ -1,0 +1,28 @@
+# Maven build artifacts
+target/
+idempotent-service/target/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# SSH Keys & Credentials (NEVER commit)
+.ssh/
+*.pem
+*.ppk
+*.key
+id_rsa*
+id_dsa*
+id_ecdsa*
+id_ed25519*
+
+*.ear
+*.zip
