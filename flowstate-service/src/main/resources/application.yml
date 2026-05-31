@@ -1,6 +1,9 @@
 server:
   port: ${SERVER_PORT:8080}
+  max-http-request-size: 10KB
   tomcat:
+    max-http-form-post-size: 10KB
+    max-swallow-size: 10KB
     threads:
       max: 200
       min-spare: 20
