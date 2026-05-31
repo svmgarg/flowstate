@@ -1,6 +1,5 @@
 package com.flowstate.service.memory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flowstate.dto.memory.*;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +36,6 @@ public class RedisMemoryService implements MemoryService {
         Instant expiresAt = ttl > 0 ? now.plusSeconds(ttl) : null;
 
         try {
-            // Serialize value + metadata together
             Map<String, Object> envelope = new HashMap<>();
             envelope.put("v", request.getValue());
             envelope.put("ns", request.getNamespace());
@@ -63,12 +61,12 @@ public class RedisMemoryService implements MemoryService {
                     .message("Stored successfully")
                     .build();
 
-        } catch (JsonProcessingException e) {
-            log.error("Failed to serialize value for key: {}", request.getKey(), e);
+        } catch (Exception e) {
+            log.error("Failed to store key: {} in Redis", request.getKey(), e);
             return MemoryResponse.builder()
                     .success(false)
                     .key(request.getKey())
-                    .message("Failed to serialize value: " + e.getMessage())
+                    .message("Storage unavailable, please retry")
                     .build();
         }
     }
@@ -125,24 +123,34 @@ public class RedisMemoryService implements MemoryService {
     public MemoryResponse forget(ForgetRequest request, String workspaceId) {
         String redisKey = buildRedisKey(workspaceId, request.getNamespace(), request.getKey());
 
-        Boolean deleted = redisTemplate.delete(redisKey);
+        try {
+            Boolean deleted = redisTemplate.delete(redisKey);
 
-        if (Boolean.TRUE.equals(deleted)) {
-            log.debug("Redis forgot key: {} in workspace: {}", request.getKey(), workspaceId);
+            if (Boolean.TRUE.equals(deleted)) {
+                log.debug("Redis forgot key: {} in workspace: {}", request.getKey(), workspaceId);
+                return MemoryResponse.builder()
+                        .success(true)
+                        .key(request.getKey())
+                        .namespace(request.getNamespace())
+                        .message("Forgotten successfully")
+                        .build();
+            }
+
             return MemoryResponse.builder()
-                    .success(true)
+                    .success(false)
                     .key(request.getKey())
                     .namespace(request.getNamespace())
-                    .message("Forgotten successfully")
+                    .message("Key not found (already forgotten or never existed)")
+                    .build();
+
+        } catch (Exception e) {
+            log.error("Failed to forget key: {} from Redis", request.getKey(), e);
+            return MemoryResponse.builder()
+                    .success(false)
+                    .key(request.getKey())
+                    .message("Storage unavailable, please retry")
                     .build();
         }
-
-        return MemoryResponse.builder()
-                .success(false)
-                .key(request.getKey())
-                .namespace(request.getNamespace())
-                .message("Key not found (already forgotten or never existed)")
-                .build();
     }
 
     /**
