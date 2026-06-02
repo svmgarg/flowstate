@@ -156,7 +156,7 @@ function Invoke-Deploy {
         Write-Host ""
         Write-Info "App:    $APP_URL"
         Write-Info "Health: $APP_URL/v1/health"
-        Write-Info "UI:     $APP_URL/flowstate.html"
+        Write-Info "UI:     $APP_URL/"
         Write-Host ""
     } else {
         Write-Err "Deployment failed!"

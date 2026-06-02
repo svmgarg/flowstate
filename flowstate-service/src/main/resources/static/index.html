@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowState – API Documentation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    <script>
+        // Early theme detection – prevents FOUC
+        (function(){var t=localStorage.getItem('flowstate-theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark')}})();
+    </script>
+</head>
+<body>
+    <div class="mobile-topbar">
+        <div class="d-flex align-items-center gap-2">
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open navigation">☰</button>
+            <a href="#overview" class="text-white text-decoration-none fw-bold" data-page-link="overview">⚡ FlowState</a>
+        </div>
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme">☀️</button>
+    </div>
+
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="d-flex align-items-center justify-content-between p-3 border-bottom border-white border-opacity-10">
+            <a href="#overview" class="logo" data-page-link="overview">
+                <span class="logo-icon">⚡</span>
+                <strong>FlowState</strong>
+            </a>
+            <button class="sidebar-close d-lg-none" id="sidebarClose" aria-label="Close navigation">×</button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div>
+                <p class="text-uppercase small text-white-50 fw-semibold px-3 mb-1 mt-3">Getting Started</p>
+                <ul class="list-unstyled">
+                    <li><a href="#overview" class="nav-link-sidebar">Overview</a></li>
+                    <li><a href="#quick-start" class="nav-link-sidebar">Quick Start</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <p class="text-uppercase small text-white-50 fw-semibold px-3 mb-1 mt-3">API Reference</p>
+                <ul class="list-unstyled">
+                    <li><a href="#store" class="nav-link-sidebar">Store</a></li>
+                    <li><a href="#store-if-absent" class="nav-link-sidebar">Store If Absent</a></li>
+                    <li><a href="#recall" class="nav-link-sidebar">Recall</a></li>
+                    <li><a href="#forget" class="nav-link-sidebar">Forget</a></li>
+                    <li><a href="#health" class="nav-link-sidebar">Health</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <p class="text-uppercase small text-white-50 fw-semibold px-3 mb-1 mt-3">Integration</p>
+                <ul class="list-unstyled">
+                    <li><a href="#zapier" class="nav-link-sidebar">Zapier</a></li>
+                    <li><a href="#n8n" class="nav-link-sidebar">n8n</a></li>
+                    <li><a href="#make" class="nav-link-sidebar">Make</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <p class="text-uppercase small text-white-50 fw-semibold px-3 mb-1 mt-3">Resources</p>
+                <ul class="list-unstyled">
+                    <li><a href="#authentication" class="nav-link-sidebar">Authentication</a></li>
+                    <li><a href="#limits" class="nav-link-sidebar">Limits &amp; Validation</a></li>
+                    <li><a href="#tester" class="nav-link-sidebar">API Tester</a></li>
+                    <li><a href="#examples" class="nav-link-sidebar">Examples</a></li>
+                </ul>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <div class="content-area">
+            <section class="page" data-page="overview">
+                <div class="hero-card card border-0 rounded-4 p-4 p-lg-5 text-white mb-4">
+                    <div class="row g-4 align-items-center">
+                        <div class="col-xl-7">
+                            <span class="badge rounded-pill bg-light bg-opacity-25 text-white text-uppercase small fw-semibold mb-3">Workflow Memory API</span>
+                            <h1 class="fw-bold">Memory for your workflows</h1>
+                            <p class="lead opacity-75">FlowState gives automation tools a simple REST memory layer so each workflow run can remember what happened before.</p>
+                            <p class="opacity-75">Built for Zapier, n8n, Make, and any custom automation that needs lightweight state without standing up a database.</p>
+                            <div class="d-flex flex-wrap gap-2 mb-3">
+                                <a href="#quick-start" class="btn btn-light btn-lg" data-page-link="quick-start">Start in 3 steps</a>
+                                <a href="#tester" class="btn btn-outline-light btn-lg" data-page-link="tester">Open API Tester</a>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 mt-3">
+                                <span class="badge bg-light bg-opacity-10 border border-light border-opacity-25 font-monospace fw-normal py-2 px-3">POST /v1/store</span>
+                                <span class="badge bg-light bg-opacity-10 border border-light border-opacity-25 font-monospace fw-normal py-2 px-3">POST /v1/memory/store-if-absent</span>
+                                <span class="badge bg-light bg-opacity-10 border border-light border-opacity-25 font-monospace fw-normal py-2 px-3">GET /v1/recall</span>
+                                <span class="badge bg-light bg-opacity-10 border border-light border-opacity-25 font-monospace fw-normal py-2 px-3">DELETE /v1/forget</span>
+                                <span class="badge bg-light bg-opacity-10 border border-light border-opacity-25 font-monospace fw-normal py-2 px-3">GET /v1/health</span>
+                            </div>
+                        </div>
+                        <div class="col-xl-5">
+                            <div class="bg-dark bg-opacity-25 rounded-3 p-1">
+                                <div class="mini-terminal rounded-3 overflow-hidden">
+                                    <div class="terminal-bar d-flex gap-1 px-3 py-2">
+                                        <span></span><span></span><span></span>
+                                    </div>
+                                    <pre class="mb-0 p-3"><code>{
+  "key": "last_run",
+  "value": "2024-01-15T10:30:00Z",
+  "ttlSeconds": 86400,
+  "namespace": "invoice-sync"
+}</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4 mt-1">
+                    <div class="col-lg-4">
+                        <article class="card h-100 border-0 shadow-sm p-4">
+                            <h3 class="fs-5 fw-semibold">Simple REST API</h3>
+                            <p class="text-secondary mb-0">Store, recall, and forget values with predictable JSON responses that fit cleanly into HTTP nodes and webhook steps.</p>
+                        </article>
+                    </div>
+                    <div class="col-lg-4">
+                        <article class="card h-100 border-0 shadow-sm p-4">
+                            <h3 class="fs-5 fw-semibold">Automation Friendly</h3>
+                            <p class="text-secondary mb-0">Designed for no-code and low-code tools that need persistence between workflow executions without extra infrastructure.</p>
+                        </article>
+                    </div>
+                    <div class="col-lg-4">
+                        <article class="card h-100 border-0 shadow-sm p-4">
+                            <h3 class="fs-5 fw-semibold">Predictable Contract</h3>
+                            <p class="text-secondary mb-0">Every endpoint returns HTTP 200. Inspect <code>success</code>, <code>message</code>, and <code>value</code> in the JSON body to decide next steps.</p>
+                        </article>
+                    </div>
+                </div>
+
+                <div class="notice-card notice-info mt-4">
+                    <h3>How FlowState fits into a workflow</h3>
+                    <div class="d-flex flex-column gap-3 mt-3 ps-1">
+                        <div class="d-flex gap-3 align-items-start"><span class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width:2rem;height:2rem;font-size:.875rem">1</span><div><strong>Write memory</strong><p class="mb-0 text-secondary">Store a key when a workflow completes an important step.</p></div></div>
+                        <div class="d-flex gap-3 align-items-start"><span class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width:2rem;height:2rem;font-size:.875rem">2</span><div><strong>Read memory later</strong><p class="mb-0 text-secondary">Recall the key in the next run to avoid duplicate work or continue from the latest state.</p></div></div>
+                        <div class="d-flex gap-3 align-items-start"><span class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width:2rem;height:2rem;font-size:.875rem">3</span><div><strong>Expire or delete</strong><p class="mb-0 text-secondary">Use TTLs or explicit deletes to keep state fresh and scoped to the workflow lifetime.</p></div></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="page" data-page="quick-start">
+                <h2>Quick Start</h2>
+                <p class="page-lead">From zero to workflow memory in three steps.</p>
+
+                <div class="d-flex flex-column gap-4">
+                    <div>
+                        <h3>Get your API key</h3>
+                        <p>All endpoints except <code>/v1/health</code> require the <code>X-API-Key</code> header. Keys must be exactly 8 uppercase letters or digits.</p>
+                        <p style="margin-top:0.5rem;color:#6b7280;">To request an API key, contact the admin at <strong>svmgarg@gmail.com</strong></p>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary font-monospace">Length: 8</span>
+                            <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary font-monospace">Pattern: [A-Z0-9]</span>
+                            <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary font-monospace">Header: X-API-Key</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3>Store a value</h3>
+                        <p>Send the key, value, TTL, and namespace. Namespaces are optional and default to <code>_default</code>.</p>
+                        <div class="code-block">
+                            <button class="copy-btn" type="button">Copy</button>
+                            <pre><code>curl -X POST https://your-domain/v1/store \
+  -H "X-API-Key: K7M2X9BF" \
+  -H "Content-Type: application/json" \
+  -d '{"key": "last_run", "value": "2024-01-15T10:30:00Z", "ttlSeconds": 86400, "namespace": "invoice-sync"}'</code></pre>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3>Recall it later</h3>
+                        <p>Read the stored value in a future workflow run. Use the same key and namespace pair.</p>
+                        <div class="code-block">
+                            <button class="copy-btn" type="button">Copy</button>
+                            <pre><code>curl "https://your-domain/v1/recall?key=last_run&amp;namespace=invoice-sync" \
+  -H "X-API-Key: K7M2X9BF"</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="notice-card notice-warning">
+                    <h3>Important response behavior</h3>
+                    <p>FlowState always returns HTTP 200. Your workflow must check the JSON body and branch on <code>success</code> rather than HTTP status code.</p>
+                </div>
+            </section>
+
+            <section class="page" data-page="store">
+                <div class="d-flex align-items-center gap-3 flex-wrap pb-3 border-bottom mb-4">
+                    <span class="method-pill post badge font-monospace text-uppercase fw-bold fs-6 px-3 py-2">POST</span>
+                    <h2 class="mb-0">/v1/store</h2>
+                    <p class="mb-0 text-muted">Persist a value for a key, optionally scoped by namespace and TTL.</p>
+                </div>
+
+                <div class="content-grid two-up">
+                    <article class="content-card">
+                        <h3>Request body</h3>
+                        <div class="list-unstyled d-flex flex-column gap-2">
+                            <div class="border-bottom pb-2"><strong>key</strong><span class="badge rounded-pill bg-danger bg-opacity-10 text-danger ms-2">Required</span><span class="ms-2 text-muted small">1-32 chars · <code>[a-zA-Z0-9_-]</code></span></div>
+                            <div class="border-bottom pb-2"><strong>value</strong><span class="badge rounded-pill bg-danger bg-opacity-10 text-danger ms-2">Required</span><span class="ms-2 text-muted small">not null · max 1024 bytes</span></div>
+                            <div class="border-bottom pb-2"><strong>ttlSeconds</strong><span class="badge rounded-pill bg-info bg-opacity-10 text-info ms-2">Optional</span><span class="ms-2 text-muted small">0-86400</span></div>
+                            <div class="border-bottom pb-2"><strong>namespace</strong><span class="badge rounded-pill bg-info bg-opacity-10 text-info ms-2">Optional</span><span class="ms-2 text-muted small">max 32 chars · defaults to <code>_default</code></span></div>
+                        </div>
+                    </article>
+                    <article class="content-card">
+                        <h3>Auth</h3>
+                        <p>Requires <code>X-API-Key</code> with exactly 8 characters matching <code>[A-Z0-9]</code>.</p>
+                        <h3 class="mt-4">Success contract</h3>
+                        <p>The body includes <code>success</code> and <code>message</code>. Your workflow should treat <code>success: false</code> as a handled failure even though HTTP 200 is returned.</p>
+                    </article>
+                </div>
+
+                <div class="code-block">
+                    <button class="copy-btn" type="button">Copy</button>
+                    <pre><code>curl -X POST https://your-domain/v1/store \
+  -H "X-API-Key: K7M2X9BF" \
+  -H "Content-Type: application/json" \
+  -d '{"key": "last_run", "value": "2024-01-15T10:30:00Z", "ttlSeconds": 86400, "namespace": "invoice-sync"}'</code></pre>
+                </div>
+
+                <div class="code-block">
+                    <button class="copy-btn" type="button">Copy</button>
+                    <pre><code>{
+  "success": true,
+  "message": "Value stored successfully"
+}</code></pre>
+                </div>
+            </section>
+
+            <section class="page" data-page="store-if-absent">
+                <div class="d-flex align-items-center gap-3 flex-wrap pb-3 border-bottom mb-4">
+                    <span class="method-pill post badge font-monospace text-uppercase fw-bold fs-6 px-3 py-2">POST</span>
+                    <h2 class="mb-0">/v1/memory/store-if-absent</h2>
+                    <p class="mb-0 text-muted">Atomic idempotency check — store a value only if the key doesn't already exist.</p>
+                </div>
+
+                <div class="content-grid two-up">
+                    <article class="content-card">
+                        <h3>Request body</h3>
+                        <div class="list-unstyled d-flex flex-column gap-2">
+                            <div class="border-bottom pb-2"><strong>namespace</strong><span class="badge rounded-pill bg-danger bg-opacity-10 text-danger ms-2">Required</span><span class="ms-2 text-muted small">string · logical grouping for keys</span></div>
+                            <div class="border-bottom pb-2"><strong>key</strong><span class="badge rounded-pill bg-danger bg-opacity-10 text-danger ms-2">Required</span><span class="ms-2 text-muted small">string · 1-32 chars · <code>[a-zA-Z0-9_-]</code></span></div>
+                            <div class="border-bottom pb-2"><strong>value</strong><span class="badge rounded-pill bg-danger bg-opacity-10 text-danger ms-2">Required</span><span class="ms-2 text-muted small">any valid JSON-serializable value · max 1024 bytes</span></div>
+                            <div class="border-bottom pb-2"><strong>ttlSeconds</strong><span class="badge rounded-pill bg-info bg-opacity-10 text-info ms-2">Optional</span><span class="ms-2 text-muted small">number · 0-86400 · defaults to 86400 (24 hours)</span></div>
+                        </div>
+                    </article>
+                    <article class="content-card">
+                        <h3>Headers</h3>
+                        <div class="header-row">
+                            <span class="header-key">X-API-Key</span>
+                            <span class="header-value">Required · 8 chars <code>[A-Z0-9]</code></span>
+                        </div>
+                        <div class="header-row" style="margin-top: 0.5rem;">
+                            <span class="header-key">X-Workspace-Id</span>
+                            <span class="header-value">Required · workspace identifier</span>
+                        </div>
+                        <h3 class="mt-4">Atomic behavior</h3>
+                        <p>Uses Redis <code>SETNX</code> under the hood — the check-and-store operation is a single atomic command. Zero race conditions, even under concurrent requests.</p>
+                    </article>
+                </div>
+
+                <div class="notice-card notice-info">
+                    <h3>Unlike /store, this endpoint never overwrites existing data</h3>
+                    <p>If the key already exists, the existing value is preserved unchanged. The response tells you whether the key was new (<code>existed: false</code>) or already present (<code>existed: true</code>). This makes it perfect for idempotency checks where you need to answer: "Have I processed this event before?"</p>
+                </div>
+
+                <h3 style="margin-top: 2rem;">Request example</h3>
+                <div class="code-block">
+                    <button class="copy-btn" type="button">Copy</button>
+                    <pre><code>curl -X POST https://your-domain/v1/memory/store-if-absent \
+  -H "X-API-Key: K7M2X9BF" \
+  -H "X-Workspace-Id: ws_prod_01" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "namespace": "webhooks",
+    "key": "evt_stripe_abc123",
+    "value": "processed",
+    "ttlSeconds": 86400
+  }'</code></pre>
+                </div>
+
+                <h3 style="margin-top: 2rem;">Response — New key stored</h3>
+                <div class="code-block">
+                    <button class="copy-btn" type="button">Copy</button>
+                    <pre><code>{
+  "success": true,
+  "message": "Stored (new key)",
+  "existed": false
+}</code></pre>
+                </div>
+
+                <h3 style="margin-top: 1.5rem;">Response — Key already exists</h3>
+                <div class="code-block">
+                    <button class="copy-btn" type="button">Copy</button>
+                    <pre><code>{
+  "success": true,
+  "message": "Already exists (duplicate)",
+  "existed": true
+}</code></pre>
+                </div>
+
+                <h3 style="margin-top: 2.5rem;">Use case: Deduplicating webhook deliveries</h3>
+                <div class="content-grid two-up">
+                    <article class="content-card">
+                        <h3>The problem</h3>
+                        <p>Payment providers (Stripe, PayPal, Razorpay) may deliver the same webhook event multiple times due to retries, network issues, or failovers. Without atomic deduplication, your workflow could process the same payment twice.</p>
+                    </article>
+                    <article class="content-card">
+                        <h3>The solution</h3>
+                        <p>Call <code>store-if-absent</code> with the event ID as the key. If <code>existed: true</code>, skip processing — it's a duplicate. If <code>existed: false</code>, the key was stored atomically and you're safe to proceed.</p>
+                    </article>
+                </div>
+
+                <div class="code-block">
+                    <button class="copy-btn" type="button">Copy</button>
+                    <pre><code>// Webhook handler — atomic deduplication
+const response = await fetch('/v1/memory/store-if-absent', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-API-Key': 'K7M2X9BF',
+    'X-Workspace-Id': 'ws_prod_01'
+  },
+  body: JSON.stringify({
+    namespace: 'webhooks',
+    key: event.id,           // e.g. "evt_stripe_abc123"
+    value: 'processed',
+    ttlSeconds: 86400
+  })
+});
+
+const result = await response.json();
+
+if (result.existed) {
+  console.log('Duplicate webhook — skipping');
+  return { status: 200 };
+}
+
+// First time seeing this event — safe to process
+await processPayment(event);
+return { status: 200 };</code></pre>
+                </div>
+
+                <div class="notice-card notice-warning" style="margin-top: 1.5rem;">
+                    <h3>Why not use /store + /recall?</h3>
+                    <p>A two-step recall-then-store pattern has a race condition: two concurrent requests could both see "key not found" and both proceed. <code>store-if-absent</code> eliminates this by combining the check and write into a single atomic operation (Redis SETNX). There is no window where two callers can both "win."</p>
+                </div>
+            </section>
+
+            <section class="page" data-page="recall">
+                <div class="d-flex align-items-center gap-3 flex-wrap pb-3 border-bottom mb-4">
+                    <span class="method-pill get badge font-monospace text-uppercase fw-bold fs-6 px-3 py-2">GET</span>
+                    <h2 class="mb-0">/v1/recall</h2>
+                    <p class="mb-0 text-muted">Fetch a value that was stored earlier.</p>
+                </div>
+
+                <div class="content-grid two-up">
+                    <article class="content-card">
+                        <h3>Query parameters</h3>
+                        <div class="list-unstyled d-flex flex-column gap-2">
+                            <div class="border-bottom pb-2"><strong>key</strong><span class="badge rounded-pill bg-danger bg-opacity-10 text-danger ms-2">Required</span><span class="ms-2 text-muted small">same validation as store</span></div>
+                            <div class="border-bottom pb-2"><strong>namespace</strong><span class="badge rounded-pill bg-info bg-opacity-10 text-info ms-2">Optional</span><span class="ms-2 text-muted small">defaults to <code>_default</code></span></div>
+                        </div>
+                    </article>
+                    <article class="content-card">
+                        <h3>Response</h3>
+                        <p>When found, the response includes <code>value</code>. Missing or invalid requests still come back as HTTP 200 with <code>success: false</code>.</p>
+                    </article>
+                </div>
+
+                <div class="code-block">
+                    <button class="copy-btn" type="button">Copy</button>
+                    <pre><code>curl "https://your-domain/v1/recall?key=last_run&amp;namespace=invoice-sync" \
+  -H "X-API-Key: K7M2X9BF"</code></pre>
+                </div>
+
+                <div class="code-block">
+                    <button class="copy-btn" type="button">Copy</button>
+                    <pre><code>{
+  "success": true,
+  "message": "Value found",
+  "value": "2024-01-15T10:30:00Z"
+}</code></pre>
+                </div>
+            </section>
+
+            <section class="page" data-page="forget">
+                <div class="d-flex align-items-center gap-3 flex-wrap pb-3 border-bottom mb-4">
+                    <span class="method-pill delete badge font-monospace text-uppercase fw-bold fs-6 px-3 py-2">DELETE</span>
+                    <h2 class="mb-0">/v1/forget</h2>
+                    <p class="mb-0 text-muted">Delete a stored value when it is no longer needed.</p>
+                </div>
+
+                <div class="content-grid two-up">
+                    <article class="content-card">
+                        <h3>Query parameters</h3>
+                        <div class="list-unstyled d-flex flex-column gap-2">
+                            <div class="border-bottom pb-2"><strong>key</strong><span class="badge rounded-pill bg-danger bg-opacity-10 text-danger ms-2">Required</span><span class="ms-2 text-muted small">same validation as store</span></div>
+                            <div class="border-bottom pb-2"><strong>namespace</strong><span class="badge rounded-pill bg-info bg-opacity-10 text-info ms-2">Optional</span><span class="ms-2 text-muted small">defaults to <code>_default</code></span></div>
+                        </div>
+                    </article>
+                    <article class="content-card">
+                        <h3>Typical use cases</h3>
+                        <p>Clear temporary locks, reset workflow checkpoints, or remove data after a workflow has safely handed it off elsewhere.</p>
+                    </article>
+                </div>
+
+                <div class="code-block">
+                    <button class="copy-btn" type="button">Copy</button>
+                    <pre><code>curl -X DELETE "https://your-domain/v1/forget?key=last_run&amp;namespace=invoice-sync" \
+  -H "X-API-Key: K7M2X9BF"</code></pre>
+                </div>
+
+                <div class="code-block">
+                    <button class="copy-btn" type="button">Copy</button>
+                    <pre><code>{
+  "success": true,
+  "message": "Value deleted successfully"
+}</code></pre>
+                </div>
+            </section>
+
+            <section class="page" data-page="health">
+                <div class="d-flex align-items-center gap-3 flex-wrap pb-3 border-bottom mb-4">
+                    <span class="method-pill get badge font-monospace text-uppercase fw-bold fs-6 px-3 py-2">GET</span>
+                    <h2 class="mb-0">/v1/health</h2>
+                    <p class="mb-0 text-muted">Check service availability without authentication.</p>
+                </div>
+
+                <div class="content-grid two-up">
+                    <article class="content-card">
+                        <h3>No auth required</h3>
+                        <p>This is the only public endpoint. Use it for uptime checks, smoke tests, or preflight health monitoring.</p>
+                    </article>
+                    <article class="content-card">
+                        <h3>Automation tip</h3>
+                        <p>Even for health checks, build your workflow to read the response body rather than assuming non-200 means unhealthy.</p>
+                    </article>
+                </div>
+
+                <div class="code-block">
+                    <button class="copy-btn" type="button">Copy</button>
+                    <pre><code>curl https://your-domain/v1/health</code></pre>
+                </div>
+
+                <div class="code-block">
+                    <button class="copy-btn" type="button">Copy</button>
+                    <pre><code>{
+  "success": true,
+  "message": "FlowState is healthy"
+}</code></pre>
+                </div>
+            </section>
+
+            <section class="page" data-page="zapier">
+                <h2>Zapier Integration</h2>
+                <p class="page-lead">Give your Zaps memory. Prevent duplicate emails, remember where you left off, and share state between runs — using just a Webhook step.</p>
+
+                <!-- The Problem -->
+                <h3 class="mt-4 mb-3">The Problem</h3>
+                <p>Zapier workflows are <strong>stateless</strong> — each run starts from scratch. This causes real problems:</p>
+                <ul>
+                    <li><strong>Duplicate actions</strong> — Stripe sends the same webhook twice → your Zap creates two orders</li>
+                    <li><strong>Re-processing old data</strong> — a scheduled Zap processes all 500 invoices every hour instead of just new ones</li>
+                    <li><strong>Double emails</strong> — a user submits a form, refreshes, and gets two welcome emails</li>
+                </ul>
+                <p>FlowState fixes this — it stores your workflow's state so your Zap knows what it already did.</p>
+
+                <!-- How It Works -->
+                <h3 class="mt-5 mb-3">How It Works</h3>
+                <p>Add a single <strong>Webhooks by Zapier</strong> step to your Zap. FlowState gives you two patterns:</p>
+
+                <div class="content-grid two-up mt-4">
+                    <article class="content-card">
+                        <h4>🔁 Checkpointing</h4>
+                        <p><em>"Remember where I left off"</em></p>
+                        <p>Store the last processed record ID after each run. Next run reads it and skips everything before it.</p>
+                        <p class="text-muted mb-0"><strong>Examples:</strong></p>
+                        <ul class="text-muted mb-0">
+                            <li>Sync only new Shopify orders since last run</li>
+                            <li>Process CRM contacts added after last sync</li>
+                            <li>Resume a multi-page API import from where it stopped</li>
+                        </ul>
+                    </article>
+                    <article class="content-card">
+                        <h4>🛡️ Deduplication</h4>
+                        <p><em>"Have I already handled this?"</em></p>
+                        <p>Before taking action, ask FlowState: "have I seen this event ID before?" If yes, skip. If no, proceed and mark it as seen — in one atomic call.</p>
+                        <p class="text-muted mb-0"><strong>Examples:</strong></p>
+                        <ul class="text-muted mb-0">
+                            <li>Prevent duplicate Stripe webhook processing</li>
+                            <li>Send only one welcome email per signup</li>
+                            <li>Avoid creating duplicate tickets from retried form submissions</li>
+                        </ul>
+                    </article>
+                </div>
+
+                <!-- Example 1: Deduplication -->
+                <h3 class="mt-5 mb-3">Example: Stop Duplicate Webhooks</h3>
+                <p><strong>Scenario:</strong> Stripe fires a <code>payment_intent.succeeded</code> webhook. Sometimes it arrives twice. You don't want to create two orders.</p>
+
+                <p class="mt-3 mb-2"><strong>Solution:</strong> Add one Webhook step at the start of your Zap:</p>
+
+                <div class="code-block">
+                    <button class="copy-btn" type="button">Copy</button>
+                    <pre><code>Method: POST
+URL: https://your-domain/v1/memory/store-if-absent
+Headers:
+  X-API-Key: YOUR_KEY
+  Content-Type: application/json
+Body:
+{
+  "key": "evt_stripe_pi_3ABC123",
+  "value": "processed",
+  "ttlSeconds": 86400,
+  "namespace": "stripe-dedup"
+}</code></pre>
+                </div>
+
+                <p class="mt-3 mb-2"><strong>Response tells you what to do:</strong></p>
+                <table class="table table-bordered mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Response</th>
+                            <th>Meaning</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>{ "existed": false }</code></td>
+                            <td>First time seeing this event</td>
+                            <td>Continue your Zap → create the order</td>
+                        </tr>
+                        <tr>
+                            <td><code>{ "existed": true }</code></td>
+                            <td>Duplicate event</td>
+                            <td>Use a Filter step to stop the Zap</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+
+                <!-- Example 2: Checkpointing -->
+                <h3 class="mt-5 mb-3">Example: Process Only New Records</h3>
+                <p><strong>Scenario:</strong> Every hour, your Zap syncs invoices from an accounting tool. You only want new ones since the last run.</p>
+
+                <p class="mt-3 mb-2"><strong>Step 1 — Read the last checkpoint:</strong></p>
+                <div class="code-block">
+                    <button class="copy-btn" type="button">Copy</button>
+                    <pre><code>Method: GET
+URL: https://your-domain/v1/recall?key=last_invoice_id&namespace=invoice-sync
+Headers:
+  X-API-Key: YOUR_KEY</code></pre>
+                </div>
+
+                <p class="mt-3">If a value exists, use it in a Filter to skip invoices you've already processed.</p>
+
+                <p class="mt-3 mb-2"><strong>Step 2 — Save the new checkpoint after success:</strong></p>
+                <div class="code-block">
+                    <button class="copy-btn" type="button">Copy</button>
+                    <pre><code>Method: POST
+URL: https://your-domain/v1/store
+Headers:
+  X-API-Key: YOUR_KEY
+  Content-Type: application/json
+Body:
+{
+  "key": "last_invoice_id",
+  "value": "INV-2026-0542",
+  "ttlSeconds": 86400,
+  "namespace": "invoice-sync"
+}</code></pre>
+                </div>
+
+                <p class="mt-3">Next run reads <code>INV-2026-0542</code> and starts from there — no re-processing.</p>
+
+                <!-- More Use Cases -->
+                <h3 class="mt-5 mb-3">More Use Cases</h3>
+                <div class="content-grid two-up">
+                    <article class="content-card">
+                        <h4>💳 Payment Webhooks</h4>
+                        <p>Stripe, Razorpay, PayPal all retry webhooks. Use the event ID as key to catch duplicates.</p>
+                    </article>
+                    <article class="content-card">
+                        <h4>📧 One Email Per User</h4>
+                        <p>Send only one welcome email per signup. Key: <code>welcome_user_42</code> with 24h TTL.</p>
+                    </article>
+                    <article class="content-card">
+                        <h4>🛒 Order Dedup</h4>
+                        <p>Prevent double orders when Zapier retries. Key: the order or cart ID.</p>
+                    </article>
+                    <article class="content-card">
+                        <h4>📊 Incremental Syncs</h4>
+                        <p>Sync CRM contacts or invoices since last run. Store the last processed timestamp or ID.</p>
+                    </article>
+                </div>
+
+                <!-- Important Note -->
+                <div class="notice-card notice-warning mt-5">
+                    <h4 class="mb-2">⚠️ Important for Zapier Users</h4>
+                    <p class="mb-0">FlowState always returns HTTP 200 — even for errors. In your Zap, use a <strong>Filter</strong> or <strong>Paths</strong> step to check the <code>success</code> field in the JSON body (not the HTTP status code).</p>
+                </div>
+            </section>
+
+            <section class="page" data-page="n8n">
+                <h2>n8n Integration</h2>
+                <p class="page-lead">Use HTTP Request nodes to persist state between executions.</p>
+
+                <div class="content-grid two-up">
+                    <article class="content-card">
+                        <h3>Recommended node setup</h3>
+                        <ul class="check-list">
+                            <li>Use <strong>HTTP Request</strong> nodes for FlowState calls.</li>
+                            <li>Set headers explicitly, including <code>X-API-Key</code>.</li>
+                            <li>Read <code>{{$json.success}}</code> in IF nodes because the transport status is always 200.</li>
+                        </ul>
+                    </article>
+                    <article class="content-card">
+                        <h3>Best fit scenarios</h3>
+                        <ul class="check-list">
+                            <li>Checkpointing long-running workflows</li>
+                            <li>Skipping records already processed</li>
+                            <li>Sharing data across separate n8n workflows</li>
+                        </ul>
+                    </article>
+                </div>
+
+                <div class="code-block">
+                    <button class="copy-btn" type="button">Copy</button>
+                    <pre><code>URL: https://your-domain/v1/recall?key=cursor&amp;namespace=n8n-sync
+Method: GET
+Headers:
+  X-API-Key: {{$env.FLOWSTATE_API_KEY}}
+
+Then use an IF node:
+{{$json.success}} equals true</code></pre>
+                </div>
+            </section>
+
+            <section class="page" data-page="make">
+                <h2>Make Integration</h2>
+                <p class="page-lead">Use the HTTP module to add lightweight memory to scenarios.</p>
+
+                <div class="quick-steps compact">
+                    <div class="d-flex gap-3 align-items-start">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width:2.5rem;height:2.5rem">1</div>
+                        <div class="flex-grow-1" style="min-width:0">
+                            <h3 style="margin:0">Recall state at the start</h3>
+                            <p>Use an HTTP <strong>Make a request</strong> module pointed at <code>/v1/recall</code>.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 align-items-start">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width:2.5rem;height:2.5rem">2</div>
+                        <div class="flex-grow-1" style="min-width:0">
+                            <h3 style="margin:0">Map the response body</h3>
+                            <p>Evaluate <code>success</code> and <code>value</code> in filters or routers. Do not rely on status code-based error handling.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 align-items-start">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width:2.5rem;height:2.5rem">3</div>
+                        <div class="flex-grow-1" style="min-width:0">
+                            <h3 style="margin:0">Write state back</h3>
+                            <p>At the end of the scenario, store the new state with a POST module.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="code-block">
+                    <button class="copy-btn" type="button">Copy</button>
+                    <pre><code>HTTP module configuration
+Method: DELETE
+URL: https://your-domain/v1/forget?key=hourly_lock&amp;namespace=alerts
+Headers:
+  X-API-Key: {{connection.apiKey}}</code></pre>
+                </div>
+            </section>
+
+            <section class="page" data-page="authentication">
+                <h2>Authentication</h2>
+                <p class="page-lead">FlowState uses a single header-based API key for all protected endpoints.</p>
+
+                <div class="content-grid two-up">
+                    <article class="content-card">
+                        <h3>Header</h3>
+                        <div class="header-row">
+                            <span class="header-key">X-API-Key</span>
+                            <span class="header-value">Exactly 8 characters matching <code>[A-Z0-9]</code></span>
+                        </div>
+                    </article>
+                    <article class="content-card">
+                        <h3>Protected endpoints</h3>
+                        <ul class="check-list">
+                            <li><code>POST /v1/store</code></li>
+                            <li><code>POST /v1/memory/store-if-absent</code></li>
+                            <li><code>GET /v1/recall</code></li>
+                            <li><code>DELETE /v1/forget</code></li>
+                            <li><code>GET /v1/health</code> is the only endpoint without auth.</li>
+                        </ul>
+                    </article>
+                </div>
+
+                <div class="code-block">
+                    <button class="copy-btn" type="button">Copy</button>
+                    <pre><code>fetch('/v1/recall?key=last_run&amp;namespace=invoice-sync', {
+  headers: {
+    'X-API-Key': 'K7M2X9BF'
+  }
+});</code></pre>
+                </div>
+            </section>
+
+            <section class="page" data-page="limits">
+                <h2>Limits &amp; Validation</h2>
+                <p class="page-lead">These are the rules your client should enforce before sending requests.</p>
+
+                <div class="table-responsive validation-table-wrap">
+                    <table class="table validation-table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Rule</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>API Key</td><td>Fixed 8 chars, <code>[A-Z0-9]</code></td></tr>
+                            <tr><td>key</td><td>1-32 chars, <code>[a-zA-Z0-9_-]</code></td></tr>
+                            <tr><td>namespace</td><td>Optional, max 32 chars, <code>[a-zA-Z0-9_-]</code>, defaults to <code>_default</code></td></tr>
+                            <tr><td>value</td><td>Required, not null, max 1KB (1024 bytes)</td></tr>
+                            <tr><td>ttlSeconds</td><td>0-86400 seconds</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="notice-card notice-info">
+                    <h3>Client-side guidance</h3>
+                    <p>If you build a reusable connector, validate these rules before calling FlowState so your automation users get immediate, readable feedback.</p>
+                </div>
+            </section>
+
+            <section class="page" data-page="tester">
+                <h2>API Tester</h2>
+                <p class="page-lead">Try the protected endpoints against the current environment using relative URLs.</p>
+
+                <div class="notice-card notice-warning slim">
+                    <p><strong>Heads up:</strong> All endpoints require the <code>X-API-KEY</code> header. Health is documented separately because it does not require auth.</p>
+                </div>
+
+                <!-- Shared API Key -->
+                <div class="tester-card mb-4">
+                    <h3>Authentication</h3>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="testerApiKey">API Key</label>
+                            <input class="form-control" id="testerApiKey" placeholder="FLOW1234" maxlength="8" autocomplete="off">
+                            <div class="form-text">8 uppercase letters/digits (e.g. FLOW1234)</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="testerNamespace">Namespace</label>
+                            <input class="form-control" id="testerNamespace" placeholder="invoice-sync" maxlength="32" autocomplete="off">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STORE (POST) Section -->
+                <div class="tester-card mb-4" style="border-left: 3px solid var(--store-accent);">
+                    <h3>Store <span class="badge bg-success">POST</span></h3>
+                    <p class="text-muted">Save a key-value pair with optional TTL.</p>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label" for="storeKey">Key</label>
+                            <input class="form-control" id="storeKey" placeholder="last_run" maxlength="32" autocomplete="off">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="storeTtl">TTL (seconds)</label>
+                            <input class="form-control" id="storeTtl" type="number" min="0" max="86400" value="3600">
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button class="btn btn-success w-100" data-action="store" type="button">▶ Store</button>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="storeValue">Value</label>
+                            <textarea class="form-control" id="storeValue" rows="4" placeholder="Any string up to 1024 bytes"></textarea>
+                            <div class="form-text" id="valueCounter">0 / 1024 bytes</div>
+                        </div>
+                    </div>
+                    <div class="response-panel mt-3" id="storeResponsePanel">
+                        <div class="response-header">
+                            <div><h4>Response</h4><p id="storeResponseMeta">Waiting…</p></div>
+                            <button class="btn btn-sm btn-outline-light copy-btn" data-target="storeResponse" type="button">Copy</button>
+                        </div>
+                        <pre id="storeResponse">{ }</pre>
+                    </div>
+                </div>
+
+                <!-- STORE IF ABSENT (POST) Section -->
+                <div class="tester-card mb-4" style="border-left: 3px solid var(--store-accent);">
+                    <h3>Store If Absent <span class="badge bg-success">POST</span></h3>
+                    <p class="text-muted">Atomic idempotency check — store only if key doesn't exist.</p>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label" for="storeIfAbsentKey">Key</label>
+                            <input class="form-control" id="storeIfAbsentKey" placeholder="evt_stripe_abc123" maxlength="32" autocomplete="off">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="storeIfAbsentTtl">TTL (seconds)</label>
+                            <input class="form-control" id="storeIfAbsentTtl" type="number" min="0" max="86400" value="86400">
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button class="btn btn-success w-100" data-action="storeIfAbsent" type="button">▶ Store If Absent</button>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="storeIfAbsentValue">Value</label>
+                            <textarea class="form-control" id="storeIfAbsentValue" rows="2" placeholder="processed"></textarea>
+                        </div>
+                    </div>
+                    <div class="response-panel mt-3" id="storeIfAbsentResponsePanel">
+                        <div class="response-header">
+                            <div><h4>Response</h4><p id="storeIfAbsentResponseMeta">Waiting…</p></div>
+                            <button class="btn btn-sm btn-outline-light copy-btn" data-target="storeIfAbsentResponse" type="button">Copy</button>
+                        </div>
+                        <pre id="storeIfAbsentResponse">{ }</pre>
+                    </div>
+                </div>
+
+                <!-- RECALL (GET) Section -->
+                <div class="tester-card mb-4" style="border-left: 3px solid var(--recall-accent);">
+                    <h3>Recall <span class="badge bg-primary">GET</span></h3>
+                    <p class="text-muted">Retrieve a stored value by key.</p>
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label" for="recallKey">Key</label>
+                            <input class="form-control" id="recallKey" placeholder="last_run" maxlength="32" autocomplete="off">
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button class="btn btn-primary w-100" data-action="recall" type="button">▶ Recall</button>
+                        </div>
+                    </div>
+                    <div class="response-panel mt-3" id="recallResponsePanel">
+                        <div class="response-header">
+                            <div><h4>Response</h4><p id="recallResponseMeta">Waiting…</p></div>
+                            <button class="btn btn-sm btn-outline-light copy-btn" data-target="recallResponse" type="button">Copy</button>
+                        </div>
+                        <pre id="recallResponse">{ }</pre>
+                    </div>
+                </div>
+
+                <!-- FORGET (DELETE) Section -->
+                <div class="tester-card mb-4" style="border-left: 3px solid var(--forget-accent);">
+                    <h3>Forget <span class="badge bg-danger">DELETE</span></h3>
+                    <p class="text-muted">Delete a stored key-value pair.</p>
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label" for="forgetKey">Key</label>
+                            <input class="form-control" id="forgetKey" placeholder="last_run" maxlength="32" autocomplete="off">
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button class="btn btn-danger w-100" data-action="forget" type="button">▶ Forget</button>
+                        </div>
+                    </div>
+                    <div class="response-panel mt-3" id="forgetResponsePanel">
+                        <div class="response-header">
+                            <div><h4>Response</h4><p id="forgetResponseMeta">Waiting…</p></div>
+                            <button class="btn btn-sm btn-outline-light copy-btn" data-target="forgetResponse" type="button">Copy</button>
+                        </div>
+                        <pre id="forgetResponse">{ }</pre>
+                    </div>
+                </div>
+
+                <!-- Hidden fields for backward compat with JS -->
+                <input type="hidden" id="testerKey">
+                <input type="hidden" id="testerTtl">
+                <textarea style="display:none" id="testerValue"></textarea>
+                <div style="display:none" id="testerStatus"></div>
+                <div style="display:none" id="responsePanel"><pre id="testerResponse"></pre><p id="responseMeta"></p></div>
+            </section>
+
+            <section class="page" data-page="examples">
+                <h2>Examples</h2>
+                <p class="page-lead">Common FlowState patterns for real automation systems.</p>
+
+                <div class="example-grid">
+                    <article class="example-card">
+                        <span class="example-number">01</span>
+                        <h3>Deduplication</h3>
+                        <p><strong>Question:</strong> Has this invoice already been processed?</p>
+                        <p>Store the external invoice ID after a successful run. Recall it on the next run to skip duplicates safely.</p>
+                    </article>
+                    <article class="example-card">
+                        <span class="example-number">02</span>
+                        <h3>Last Run Tracking</h3>
+                        <p><strong>Question:</strong> When did this workflow last execute?</p>
+                        <p>Store an ISO timestamp after completion and use it as the next polling cursor.</p>
+                    </article>
+                    <article class="example-card">
+                        <span class="example-number">03</span>
+                        <h3>Cross-workflow State</h3>
+                        <p><strong>Question:</strong> How do I pass data between different workflows?</p>
+                        <p>Write data in one workflow and recall it from another using a shared namespace and agreed key naming.</p>
+                    </article>
+                    <article class="example-card">
+                        <span class="example-number">04</span>
+                        <h3>Rate Limiting</h3>
+                        <p><strong>Question:</strong> How do I send max 1 notification per hour?</p>
+                        <p>Store a per-recipient lock with <code>ttlSeconds: 3600</code> before sending the notification.</p>
+                    </article>
+                    <article class="example-card">
+                        <span class="example-number">05</span>
+                        <h3>State Machine</h3>
+                        <p><strong>Question:</strong> What state is this request in right now?</p>
+                        <p>Persist values like <code>pending</code>, <code>approved</code>, or <code>rejected</code> so different workflows can coordinate transitions.</p>
+                    </article>
+                </div>
+
+                <div class="code-block">
+                    <button class="copy-btn" type="button">Copy</button>
+                    <pre><code>// Rate limiting example
+await fetch('/v1/store', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-API-Key': 'K7M2X9BF'
+  },
+  body: JSON.stringify({
+    key: 'notify_customer_123',
+    value: 'sent',
+    ttlSeconds: 3600,
+    namespace: 'email-alerts'
+  })
+});</code></pre>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/router.js"></script>
+    <script src="js/api-tester.js"></script>
+</body>
+</html>

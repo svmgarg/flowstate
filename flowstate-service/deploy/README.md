@@ -41,7 +41,7 @@ Or separately:
 
 | Endpoint | URL |
 |----------|-----|
-| Dashboard | https://flowstate-api.azurewebsites.net/flowstate.html |
+| Dashboard | https://flow-state-a2f7h7bjckgsdza6.southeastasia-01.azurewebsites.net/ |
 | Health | https://flowstate-api.azurewebsites.net/v1/health |
 | API | https://flowstate-api.azurewebsites.net/v1/memory/{key} |
 

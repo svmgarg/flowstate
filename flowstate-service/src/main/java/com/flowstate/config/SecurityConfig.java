@@ -32,7 +32,8 @@ public class SecurityConfig {
                 .requestMatchers("/v1/health").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
                 .requestMatchers("/actuator/**").denyAll()
-                .requestMatchers("/", "/*.html", "/*.css", "/*.js", "/*.ico").permitAll()
+                .requestMatchers("/", "/*.html", "/*.css", "/*.js", "/*.ico",
+                                    "/css/**", "/js/**").permitAll()
 
                 // Everything else requires API key
                 .anyRequest().authenticated()

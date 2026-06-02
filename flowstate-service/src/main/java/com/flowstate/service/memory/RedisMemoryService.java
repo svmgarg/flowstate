@@ -153,6 +153,55 @@ public class RedisMemoryService implements MemoryService {
         }
     }
 
+    @Override
+    public MemoryResponse storeIfAbsent(StoreRequest request, String workspaceId) {
+        String redisKey = buildRedisKey(workspaceId, request.getNamespace(), request.getKey());
+        long ttl = request.getTtlSeconds() != null ? request.getTtlSeconds() : defaultTtlSeconds;
+        Instant now = Instant.now();
+
+        try {
+            Map<String, Object> envelope = new HashMap<>();
+            envelope.put("v", request.getValue());
+            envelope.put("ns", request.getNamespace());
+            envelope.put("cat", now.toEpochMilli());
+
+            String jsonValue = objectMapper.writeValueAsString(envelope);
+
+            // Atomic SETNX — only stores if key doesn't exist
+            Boolean wasSet = redisTemplate.opsForValue().setIfAbsent(
+                    redisKey, jsonValue, Duration.ofSeconds(ttl > 0 ? ttl : defaultTtlSeconds));
+
+            if (Boolean.TRUE.equals(wasSet)) {
+                log.debug("SETNX stored key: {} in workspace: {}", request.getKey(), workspaceId);
+                return MemoryResponse.builder()
+                        .success(true)
+                        .key(request.getKey())
+                        .namespace(request.getNamespace())
+                        .createdAt(now)
+                        .expiresAt(ttl > 0 ? now.plusSeconds(ttl) : null)
+                        .ttlRemainingSeconds(ttl > 0 ? ttl : null)
+                        .message("Stored (new key)")
+                        .build();
+            }
+
+            // Key already existed
+            return MemoryResponse.builder()
+                    .success(true)
+                    .key(request.getKey())
+                    .namespace(request.getNamespace())
+                    .message("Already exists (duplicate)")
+                    .build();
+
+        } catch (Exception e) {
+            log.error("Failed to store-if-absent key: {} in Redis", request.getKey(), e);
+            return MemoryResponse.builder()
+                    .success(false)
+                    .key(request.getKey())
+                    .message("Storage unavailable, please retry")
+                    .build();
+        }
+    }
+
     /**
      * Builds Redis key: {workspaceId}:{namespace}:{key}
      */

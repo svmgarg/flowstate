@@ -1,0 +1,63 @@
+/* ─── Design Tokens ─── */
+:root {
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+    /* Spacing tokens */
+    --section-gap: 48px;
+    --heading-card-gap: 16px;
+    --prose-max-width: 68ch;
+
+    /* Colours */
+    --sidebar-bg: #1a1a2e;
+    --sidebar-text: rgba(255, 255, 255, .85);
+    --sidebar-hover: rgba(255, 255, 255, .08);
+    --sidebar-active: rgba(99, 102, 241, .15);
+
+    --content-bg: #f8f9fc;
+    --surface: #ffffff;
+    --surface-alt: #f1f3f9;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --text-muted: #94a3b8;
+    --border-color: #e2e8f0;
+    --border-radius: 1rem;
+
+    /* Accent */
+    --accent: #6366f1;
+    --accent-hover: #4f46e5;
+    --accent-bg: rgba(99, 102, 241, .08);
+
+    /* Method colours */
+    --store-accent: #22c55e;
+    --recall-accent: #3b82f6;
+    --forget-accent: #ef4444;
+    --health-accent: #f59e0b;
+
+    /* Misc */
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,.06);
+    --transition: .2s ease;
+}
+
+[data-theme="dark"] {
+    --content-bg: #0f172a;
+    --surface: #1e293b;
+    --surface-alt: #273548;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --border-color: #334155;
+
+    --accent: #818cf8;
+    --accent-hover: #6366f1;
+    --accent-bg: rgba(129, 140, 248, .1);
+
+    --store-accent: #4ade80;
+    --recall-accent: #60a5fa;
+    --forget-accent: #f87171;
+    --health-accent: #fbbf24;
+
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.2);
+    --shadow-md: 0 4px 12px rgba(0,0,0,.3);
+}

@@ -1,4 +1,4 @@
-# Idempotency Service
+# FlowState Service
 
 A low-latency, production-grade idempotency service built with Java Spring Boot that provides atomic check-and-insert operations for idempotency keys. This service ensures that duplicate requests are safely detected and handled across distributed systems.
 
@@ -107,7 +107,7 @@ Health check endpoint that returns the service status.
 ```json
 {
   "status": "UP",
-  "service": "idempotency-service",
+  "service": "flowstate-service",
   "timestamp": "2026-01-28T10:30:00Z",
   "message": "Service is healthy and operational"
 }
@@ -201,7 +201,7 @@ All responses return **HTTP 200** to avoid breaking integrations like Zapier tha
 
 ### Build
 ```bash
-cd idempotent-service
+cd flowstate-service
 ./mvnw clean package
 ```
 
@@ -220,14 +220,14 @@ IDEMPOTENCY_STORAGE=redis REDIS_HOST=localhost ./mvnw spring-boot:run
 ### Run with Docker
 ```bash
 # Build the Docker image
-docker build -t idempotency-service:latest .
+docker build -t flowstate-service:latest .
 
 # Run with in-memory storage
-docker run -p 8443:8443 -p 8080:8080 idempotency-service:latest
+docker run -p 8443:8443 -p 8080:8080 flowstate-service:latest
 
 # Run with Redis storage
 docker run -e IDEMPOTENCY_STORAGE=redis -e REDIS_HOST=redis-host \
-  -p 8443:8443 -p 8080:8080 idempotency-service:latest
+  -p 8443:8443 -p 8080:8080 flowstate-service:latest
 ```
 
 ### Test
@@ -393,7 +393,7 @@ For production, replace it with a proper certificate:
 
 ```bash
 # Generate a new keystore (example)
-keytool -genkeypair -alias idempotent-service -keyalg RSA -keysize 2048 \
+keytool -genkeypair -alias flowstate-service -keyalg RSA -keysize 2048 \
   -storetype PKCS12 -keystore keystore.p12 -validity 365
 ```
 
@@ -437,6 +437,26 @@ Key metrics to monitor:
 - Error rates by `resultStatusCode`
 - Redis connection pool utilization
 - In-memory store size (logged periodically)
+
+## Documentation Site
+
+The interactive API documentation and dashboard is served as a static SPA at the root URL (`/`):
+
+```
+src/main/resources/static/
+├── index.html              # Main HTML shell (structure only)
+├── css/
+│   ├── variables.css       # Design tokens and CSS custom properties
+│   ├── layout.css          # Page layout, grid, navigation
+│   ├── components.css      # Buttons, cards, badges, inputs
+│   └── pages.css           # Page-specific styles
+└── js/
+    ├── router.js           # Client-side SPA routing
+    ├── theme.js            # Dark/light theme toggle
+    └── api-tester.js       # Interactive API testing panel
+```
+
+`WebConfig.java` redirects `/` → `/index.html`.
 
 ## Project Structure
 

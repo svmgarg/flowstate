@@ -57,7 +57,8 @@ class RedisMemoryServiceTest {
         ArgumentCaptor<String> jsonCaptor = ArgumentCaptor.forClass(String.class);
         verify(valueOperations).set(eq("FLOW1234:orders:order1"), jsonCaptor.capture(), eq(Duration.ofSeconds(60)));
 
-        Map<?, ?> envelope = new ObjectMapper().readValue(jsonCaptor.getValue(), Map.class);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> envelope = new ObjectMapper().readValue(jsonCaptor.getValue(), Map.class);
         assertThat(envelope.get("v")).isEqualTo(Map.of("status", "done"));
         assertThat(envelope.get("ns")).isEqualTo("orders");
         assertThat(envelope).containsKey("cat");

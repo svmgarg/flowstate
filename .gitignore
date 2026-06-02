@@ -1,6 +1,6 @@
 # Maven build artifacts
 target/
-idempotent-service/target/
+flowstate-service/target/
 
 # IDE
 .idea/

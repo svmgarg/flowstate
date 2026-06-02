@@ -17,7 +17,7 @@
 | 6 | Validation rules (key 1-32 chars, value max 1KB, TTL max 86400) | 2026-05-31 |
 | 7 | API key auth filter ([A-Z0-9]{8} format) | Done |
 | 8 | MemoryResponse cleanup (removed dead fields) | 2026-05-31 |
-| 9 | New FlowState dashboard created (flowstate.html + flowstate.css) | 2026-05-31 |
+| 9 | New FlowState dashboard created (multi-file SPA: index.html + css/ + js/) | 2026-05-31 |
 | 10 | application.yml — Redis Cloud credentials, SSL, connection pool | 2026-05-31 |
 
 ---
@@ -88,5 +88,5 @@ Client (Zapier/n8n) → HTTPS → FlowState API (Spring Boot 3.2)
 | `MemoryService.java` | Interface |
 | `ApiKeyAuthenticationFilter.java` | Auth — validates API key format |
 | `application.yml` | Config — Redis, server, memory settings |
-| `flowstate.html` | New dashboard SPA |
+| `index.html` + `css/` + `js/` | Dashboard SPA (multi-file structure) |
 | `pom.xml` | Maven — Spring Boot 3.2.2, Java 17 |

@@ -22,4 +22,10 @@ public interface MemoryService {
      * Forget (delete) a key.
      */
     MemoryResponse forget(ForgetRequest request, String workspaceId);
+
+    /**
+     * Store only if the key does not already exist (atomic via SETNX).
+     * Returns success:true with existed:false if stored, existed:true if already present.
+     */
+    MemoryResponse storeIfAbsent(StoreRequest request, String workspaceId);
 }

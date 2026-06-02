@@ -72,6 +72,31 @@ public class MemoryController {
     }
 
     /**
+     * POST /v1/store-if-absent
+     * Atomic idempotency check — stores only if key does not already exist.
+     * Returns success:true always (both new and duplicate), differentiated by message.
+     */
+    @PostMapping("/store-if-absent")
+    public ResponseEntity<MemoryResponse> storeIfAbsent(
+            @Valid @RequestBody StoreRequest request,
+            @RequestAttribute("workspaceId") String workspaceId) {
+
+        try {
+            byte[] valueBytes = objectMapper.writeValueAsBytes(request.getValue());
+            if (valueBytes.length > MAX_VALUE_BYTES) {
+                return ResponseEntity.ok(validationError("Value must not exceed 1024 bytes when serialized to JSON"));
+            }
+        } catch (JsonProcessingException e) {
+            log.warn("Failed to serialize value for store-if-absent key={} ws={}", request.getKey(), workspaceId, e);
+            return ResponseEntity.ok(validationError("Value must be JSON serializable"));
+        }
+
+        log.info("STORE-IF-ABSENT key={} ns={} ws={}", request.getKey(), request.getNamespace(), workspaceId);
+        MemoryResponse response = memoryService.storeIfAbsent(request, workspaceId);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
      * GET /v1/recall?key=xxx&namespace=yyy
      * Recall a stored value by key.
      */
